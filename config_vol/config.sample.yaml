@@ -1,0 +1,10 @@
+---
+ctis:
+  url: http://something.com
+  user: user
+  pass: pass
+  monitoring_src: VT_MON
+  ruleset_indicator_name: yara_ruleset 
+  rule_indicator_name: yara_rule
+vt:
+  key: XXXXX
