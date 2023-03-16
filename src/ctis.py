@@ -28,9 +28,6 @@ class CTIS():
     
     def do_post(self, url, json):
         return requests.post(self.url + url, headers=self.headers, json=json).json()
-        #req = requests.post(self.url + url, headers=self.headers, json=json)
-        #print(req.request.body)
-        #return req.json()
 
     def are_indicators_related(self, ind1, ind2):
         return ind1["_id"] in str(self.do_get(f"/indicators/relationships/indicators/{ind2['_id']}"))
@@ -151,7 +148,6 @@ class CTIS():
         return rulesets
 
     def CTIS_login(self, user, password):
-        #response = requests.post(f"{self.url}/api/auth/login", json={"username": user, "password": password})
         response = requests.get(f"{self.url}/login", auth=(user, password))
         self.headers = {'accept': 'application/json', 'Content-Type': 'application/json',
                         'Authorization': 'Bearer ' + response.json()["data"]["access_token"]}
