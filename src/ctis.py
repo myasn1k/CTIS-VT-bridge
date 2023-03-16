@@ -32,6 +32,28 @@ class CTIS():
     def are_indicators_related(self, ind1, ind2):
         return ind1["_id"] in str(self.do_get(f"/indicators/relationships/indicators/{ind2['_id']}"))
 
+    def add_alert(self, name, message):
+        json_query = [
+                {
+                    "entity_type": "report",
+                    "labels": ["yara-match"],
+                    "title": name,
+                    "message": message,
+                    "from": self.src_mon,
+                    "alert_type": "x-files-metadata",
+                    "role": "analyst",
+                    "x-sources": [
+                        {
+                            "source_name": self.src_mon,
+                            "classification": 0,
+                            "releasability": 0,
+                            "tlp": 0
+                        }
+                    ]
+                }
+            ]
+        return self.do_post("/alerts", json_query)
+
     def add_match(self, match):
         rule = self.get_rule_by_name(match['context_attributes']['rule_name'])
         ruleset = self.get_ruleset_by_name(match['context_attributes']['ruleset_name'])
@@ -65,11 +87,19 @@ class CTIS():
                     ]
                   }
                ]
-        res = self.do_post("/x-files-metadata", json)
-        if "_error" in res.keys() and res["_error"]["code"] == 409:
-            return self.add_relationship("related-to", rule["_id"], "indicators", res["_error"]["message"]["_id"], "x-files-metadata")
-        else:
-            return self.add_relationship("related-to", rule["_id"], "indicators", res["_id"], "x-files-metadata")
+        file = self.do_post("/x-files-metadata", json)
+        if "_error" in file.keys() and file["_error"]["code"] == 409:
+            file = file["_error"]["message"]["_id"]
+        else: 
+            file = file["_id"]
+        self.add_relationship("related-to", rule["_id"], "indicators", file, "x-files-metadata")
+        alert = self.add_alert("Yara match from VT", f"{match['context_attributes']['rule_name']} in {match['context_attributes']['ruleset_name']} matched file {match['attributes']['sha256']}")
+        if "_error" in alert.keys() and alert["_error"]["code"] == 409:
+            alert = alert["_error"]["message"]["_id"]
+        else: 
+            alert = alert["_id"]
+        self.add_relationship("related-to", alert, "alerts", file, "x-files-metadata")
+        self.add_relationship("related-to", alert, "alerts", rule["_id"], "indicators")
 
     def add_relationship(self, rel_type, src, src_type, dst, dst_type):
         json_query = [
