@@ -38,7 +38,7 @@ class CTIS():
                     "entity_type": "report",
                     "labels": ["yara-match"],
                     "title": name,
-                    "message": message,
+                    "message": message.replace('\n', '\r\n'),
                     "from": self.src_mon,
                     "alert_type": "x-files-metadata",
                     "role": "analyst",
@@ -76,7 +76,7 @@ class CTIS():
                     "community_reputation": match["attributes"]["reputation"],
                     "unique_sources": match["attributes"]["unique_sources"],
                     "first_seen": str(datetime.fromtimestamp(match["attributes"]["first_submission_date"])) + "Z",
-                    "x-description": f"Yara snippet match: {match['context_attributes']['notification_snippet']}",
+                    "x-description": f"Yara snippet match: {match['context_attributes']['notification_snippet'].replace('\n', '\r\n')}",
                     "x-sources": [
                         {
                             "source_name": "default",
